@@ -36,7 +36,11 @@ class EntityCreateRequest(BaseModel):
                 "id": "urn:ngsi-v2:AirQualityObserved:HCM-District1-001",
                 "type": "AirQualityObserved",
                 "attributes": {
-                    "pm25": {"value": 42.5, "type": "Number", "metadata": {"unitCode": {"value": "GQ"}}},
+                    "pm25": {
+                        "value": 42.5,
+                        "type": "Number",
+                        "metadata": {"unitCode": {"value": "GQ"}},
+                    },
                     "temperature": {"value": 31.2, "type": "Number"},
                     "location": {
                         "value": {"type": "Point", "coordinates": [106.6956, 10.7769]},

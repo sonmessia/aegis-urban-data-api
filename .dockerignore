@@ -10,4 +10,5 @@
 .ruff_cache/
 htmlcov/
 *.md
+!README.md
 tests/

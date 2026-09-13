@@ -3,7 +3,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import AnyHttpUrl, Field, field_validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,13 +22,11 @@ class Settings(BaseSettings):
 
     # ── Application ──────────────────────────────────────────────────────────
     app_version: str = Field(default="0.1.0", alias="APP_VERSION")
-    environment: Literal["dev", "demo", "production"] = Field(
-        default="dev", alias="ENVIRONMENT"
-    )
+    environment: Literal["dev", "demo", "production"] = Field(default="dev", alias="ENVIRONMENT")
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = Field(
         default="INFO", alias="LOG_LEVEL"
     )
-    cors_origins: list[AnyHttpUrl] = Field(
+    cors_origins: list[str] = Field(
         default=["http://localhost:3000"],
         alias="CORS_ORIGINS",
     )
@@ -36,7 +34,10 @@ class Settings(BaseSettings):
     # ── Database ─────────────────────────────────────────────────────────────
     # Injected by External Secrets Operator from AWS Secrets Manager (Floci)
     # Format: postgresql+asyncpg://user:password@host:port/dbname
-    database_url: str = Field(alias="DATABASE_URL")
+    database_url: str = Field(
+        default="postgresql+asyncpg://aegis_app:changeme@localhost:5432/aegis_urban",
+        alias="DATABASE_URL",
+    )
     db_pool_size: int = Field(default=10, alias="DB_POOL_SIZE")
     db_max_overflow: int = Field(default=20, alias="DB_MAX_OVERFLOW")
     db_pool_timeout: int = Field(default=30, alias="DB_POOL_TIMEOUT")
@@ -55,7 +56,7 @@ class Settings(BaseSettings):
 
     @field_validator("cors_origins", mode="before")
     @classmethod
-    def parse_cors_origins(cls, v: str | list) -> list:
+    def parse_cors_origins(cls, v: str | list[str]) -> list[str]:
         """Allow comma-separated string from env var."""
         if isinstance(v, str):
             return [origin.strip() for origin in v.split(",")]

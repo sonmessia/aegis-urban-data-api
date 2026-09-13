@@ -15,9 +15,9 @@ router = APIRouter(tags=["observability"])
 @router.get(
     "/health",
     summary="Liveness probe",
-    response_model=dict,
+    response_model=dict[str, str],
 )
-async def health() -> dict:
+async def health() -> dict[str, str]:
     """Liveness probe — returns 200 if the process is running."""
     return {"status": "ok"}
 
@@ -25,9 +25,9 @@ async def health() -> dict:
 @router.get(
     "/ready",
     summary="Readiness probe",
-    response_model=dict,
+    response_model=dict[str, str],
 )
-async def ready(db: AsyncSession = Depends(get_db_session)) -> dict:
+async def ready(db: AsyncSession = Depends(get_db_session)) -> dict[str, str]:
     """
     Readiness probe — verifies database connectivity.
     Returns 503 if the database is unreachable.

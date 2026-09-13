@@ -19,7 +19,7 @@ class EntityId:
 
     def __post_init__(self) -> None:
         if not self.value or len(self.value) > 256:
-            raise ValueError(f"EntityId must be 1–256 characters, got: {self.value!r}")
+            raise ValueError(f"EntityId must be 1-256 characters, got: {self.value!r}")
 
     def __str__(self) -> str:
         return self.value
@@ -36,7 +36,7 @@ class EntityType:
 
     def __post_init__(self) -> None:
         if not self.value or len(self.value) > 128:
-            raise ValueError(f"EntityType must be 1–128 characters, got: {self.value!r}")
+            raise ValueError(f"EntityType must be 1-128 characters, got: {self.value!r}")
 
     def __str__(self) -> str:
         return self.value

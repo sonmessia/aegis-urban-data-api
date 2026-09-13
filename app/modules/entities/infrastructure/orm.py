@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import JSON, DateTime, String, Uuid, func
 from sqlalchemy.dialects.postgresql import JSONB
@@ -38,7 +39,7 @@ class EntityORM(Base):
         index=True,
         comment="FIWARE entity type (e.g., 'AirQualityObserved')",
     )
-    attributes: Mapped[dict] = mapped_column(
+    attributes: Mapped[dict[str, Any]] = mapped_column(
         JSON().with_variant(JSONB, "postgresql"),
         nullable=False,
         default=dict,

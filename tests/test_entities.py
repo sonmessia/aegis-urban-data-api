@@ -1,17 +1,15 @@
 """Tests for entities module — domain unit tests and API integration tests."""
 
 import pytest
-from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-
 from app.main import create_app
 from app.modules.entities.domain.models import Entity
 from app.modules.entities.domain.value_objects import EntityId, EntityType
-from app.modules.entities.infrastructure.orm import EntityORM  # register with metadata
 from app.shared.infrastructure.database import Base, get_db_session
-
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 # ─── Domain unit tests (Pure Python, Zero DB) ─────────────────────────────────
+
 
 def test_value_object_validations() -> None:
     entity_id = EntityId("urn:ngsi-v2:AirQualityObserved:001")
@@ -43,6 +41,7 @@ def test_domain_entity_update_attributes() -> None:
 
 # ─── Integration tests with in-memory SQLite ──────────────────────────────────
 
+
 @pytest.fixture(scope="session")
 def anyio_backend() -> str:
     return "asyncio"
@@ -70,16 +69,19 @@ async def db_session(test_engine) -> AsyncSession:
 @pytest.fixture
 async def client(db_session: AsyncSession) -> AsyncClient:
     """FastAPI test client with DB session override."""
-    app = create_app()
-    app.dependency_overrides[get_db_session] = lambda: db_session
 
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
+    async def override_get_db_session():
+        yield db_session
+
+    app = create_app()
+    app.dependency_overrides[get_db_session] = override_get_db_session
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
 
 
 # ─── Health endpoints ─────────────────────────────────────────────────────────
+
 
 @pytest.mark.anyio
 async def test_health(client: AsyncClient) -> None:

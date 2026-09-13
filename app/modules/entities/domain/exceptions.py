@@ -3,6 +3,7 @@
 
 class EntityDomainException(Exception):
     """Base exception for all entities domain errors."""
+
     pass
 
 

@@ -7,7 +7,7 @@ This is the heart of the domain: it can be tested without any infrastructure.
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from app.modules.entities.domain.value_objects import EntityId, EntityType
@@ -26,8 +26,8 @@ class Entity:
     entity_type: EntityType
     attributes: dict[str, Any] = field(default_factory=dict)
     id: uuid.UUID = field(default_factory=uuid.uuid4)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def update_attributes(self, new_attributes: dict[str, Any]) -> None:
         """
@@ -35,4 +35,4 @@ class Entity:
         Attributes not present in new_attributes are preserved (partial update).
         """
         self.attributes = {**self.attributes, **new_attributes}
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)

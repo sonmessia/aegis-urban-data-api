@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 
 from sqlalchemy.ext.asyncio import (
     AsyncConnection,
+    AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
@@ -14,6 +15,7 @@ from sqlalchemy.orm import DeclarativeBase
 
 class Base(DeclarativeBase):
     """Base class for all ORM models."""
+
     pass
 
 
@@ -24,8 +26,8 @@ class DatabaseSessionManager:
     """
 
     def __init__(self) -> None:
-        self._engine = None
-        self._sessionmaker = None
+        self._engine: AsyncEngine | None = None
+        self._sessionmaker: async_sessionmaker[AsyncSession] | None = None
 
     def init(self, database_url: str, pool_size: int = 10, max_overflow: int = 20) -> None:
         """Create engine and session factory. Call once at startup."""
