@@ -123,6 +123,15 @@ app/
 | `GET` | `/v1/simulation/status`| Get simulation telemetry rate & uptime | `200 OK` |
 | `POST` | `/v1/simulation/seed` | Seed default urban sensor fleet (HCM City) | `200 OK` |
 
+### External Ingestion (Open-Meteo Public API)
+| Method | Path | Description | Status Code |
+|---|---|---|---|
+| `GET` | `/v1/external-ingest/stations` | List monitored urban stations in Ho Chi Minh City | `200 OK` |
+| `POST` | `/v1/external-ingest/sync` | On-demand sync of live weather & PM2.5/PM10 from Open-Meteo | `200 OK` |
+| `POST` | `/v1/external-ingest/schedule/start` | Start periodic background sync (default: 10 mins) | `200 OK` |
+| `POST` | `/v1/external-ingest/schedule/stop` | Stop periodic background sync | `200 OK` |
+| `GET` | `/v1/external-ingest/status` | Get scheduler status, last sync timestamp & count | `200 OK` |
+
 ### Observability & Probes
 | Method | Path | Description | Status Code |
 |---|---|---|---|

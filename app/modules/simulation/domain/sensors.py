@@ -46,8 +46,16 @@ class AirQualitySensor(BaseSensor):
         co2 = round(random.uniform(400.0, 850.0), 0)
 
         attrs = {
-            "pm25": {"type": "Number", "value": pm25, "metadata": {"unitCode": {"value": "GQ"}}},
-            "pm10": {"type": "Number", "value": pm10, "metadata": {"unitCode": {"value": "GQ"}}},
+            "pm25": {
+                "type": "Number",
+                "value": pm25,
+                "metadata": {"unitCode": {"value": "GQ"}},
+            },
+            "pm10": {
+                "type": "Number",
+                "value": pm10,
+                "metadata": {"unitCode": {"value": "GQ"}},
+            },
             "temperature": {
                 "type": "Number",
                 "value": temp,
@@ -58,7 +66,11 @@ class AirQualitySensor(BaseSensor):
                 "value": humidity,
                 "metadata": {"unitCode": {"value": "P1"}},
             },
-            "co2": {"type": "Number", "value": co2, "metadata": {"unitCode": {"value": "59"}}},
+            "co2": {
+                "type": "Number",
+                "value": co2,
+                "metadata": {"unitCode": {"value": "59"}},
+            },
             "location": {
                 "type": "geo:json",
                 "value": {

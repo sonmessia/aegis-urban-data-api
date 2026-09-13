@@ -9,6 +9,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.modules.entities.presentation.router import router as entities_router
+from app.modules.external_ingest.application.scheduler import (
+    public_data_scheduler,
+)
+from app.modules.external_ingest.presentation.router import (
+    router as external_ingest_router,
+)
 from app.modules.health.presentation.router import router as health_router
 from app.modules.observations.presentation.router import router as observations_router
 from app.modules.simulation.application.simulator import simulation_manager
@@ -45,8 +51,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     yield
 
-    # Graceful shutdown — stop ongoing simulations and drain DB connections
+    # Graceful shutdown — stop ongoing background schedulers and drain DB connections
     await simulation_manager.stop()
+    await public_data_scheduler.stop()
     await sessionmanager.close()
     logger.info("database connection pool closed, application stopped")
 
@@ -89,5 +96,6 @@ def create_app() -> FastAPI:
     app.include_router(subscriptions_router, prefix="/v1")
     app.include_router(observations_router, prefix="/v1")
     app.include_router(simulation_router, prefix="/v1")
+    app.include_router(external_ingest_router, prefix="/v1")
 
     return app

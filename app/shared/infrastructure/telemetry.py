@@ -43,7 +43,8 @@ def setup_telemetry(app: FastAPI, settings: Settings) -> None:
             )
         except Exception as exc:
             logger.warning(
-                "failed to configure OTLP exporter, falling back to console", error=str(exc)
+                "failed to configure OTLP exporter, falling back to console",
+                error=str(exc),
             )
             provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
     elif settings.environment == "dev":
