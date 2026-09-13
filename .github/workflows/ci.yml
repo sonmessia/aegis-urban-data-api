@@ -96,9 +96,8 @@ jobs:
 
       - name: pip-audit — check CVEs in dependencies (SCA)
         run: |
-          uv run pip-audit --require-hashes --format=json \
-            --output=pip-audit-report.json || true
-          uv run pip-audit --require-hashes
+          uvx pip-audit --format=json --output=pip-audit-report.json || true
+          uvx pip-audit
 
       - name: Semgrep SAST
         uses: semgrep/semgrep-action@v1
