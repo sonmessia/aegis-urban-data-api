@@ -10,8 +10,15 @@ from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.modules.entities.presentation.router import router as entities_router
 from app.modules.health.presentation.router import router as health_router
+from app.modules.observations.presentation.router import router as observations_router
+from app.modules.simulation.application.simulator import simulation_manager
+from app.modules.simulation.presentation.router import router as simulation_router
+from app.modules.subscriptions.presentation.router import (
+    router as subscriptions_router,
+)
 from app.shared.infrastructure.database import sessionmanager
 from app.shared.infrastructure.settings import get_settings
+from app.shared.infrastructure.telemetry import setup_telemetry
 from app.shared.logging import configure_logging
 
 logger = structlog.get_logger(__name__)
@@ -33,11 +40,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     sessionmanager.init(settings.database_url)
     logger.info("database connection pool initialised")
 
+    # Initialise OpenTelemetry tracing
+    setup_telemetry(app, settings)
+
     yield
 
-    # Graceful shutdown — drain connections
+    # Graceful shutdown — stop ongoing simulations and drain DB connections
+    await simulation_manager.stop()
     await sessionmanager.close()
-    logger.info("database connection pool closed")
+    logger.info("database connection pool closed, application stopped")
 
 
 def create_app() -> FastAPI:
@@ -75,5 +86,8 @@ def create_app() -> FastAPI:
     app.include_router(health_router, prefix="/v1")
     app.include_router(health_router)  # Also expose /health and /ready at root
     app.include_router(entities_router, prefix="/v1")
+    app.include_router(subscriptions_router, prefix="/v1")
+    app.include_router(observations_router, prefix="/v1")
+    app.include_router(simulation_router, prefix="/v1")
 
     return app

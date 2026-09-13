@@ -1,7 +1,7 @@
 """FastAPI router for Entities endpoints."""
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 
 from app.modules.entities.application.dtos import ListEntitiesQuery
 from app.modules.entities.application.use_cases.create_entity import CreateEntityUseCase
@@ -26,6 +26,9 @@ from app.modules.entities.presentation.schemas import (
     EntityResponse,
     EntityUpdateRequest,
 )
+from app.modules.subscriptions.infrastructure.event_handler import (
+    handle_entity_changed,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -40,11 +43,19 @@ router = APIRouter(prefix="/entities", tags=["entities"])
 )
 async def create_entity(
     payload: EntityCreateRequest,
+    background_tasks: BackgroundTasks,
     use_case: CreateEntityUseCase = Depends(get_create_entity_use_case),
 ) -> EntityResponse:
     """Ingest a new FIWARE NGSI-v2 entity from an IoT sensor."""
     try:
         dto = await use_case.execute(payload.to_command())
+        background_tasks.add_task(
+            handle_entity_changed,
+            entity_id=dto.entity_id,
+            entity_type=dto.entity_type,
+            attributes=dto.attributes,
+            changed_attributes=list(dto.attributes.keys()),
+        )
         return EntityResponse.from_dto(dto)
     except EntityAlreadyExistsError as exc:
         raise HTTPException(
@@ -108,11 +119,19 @@ async def get_entity(
 async def update_entity(
     entity_id: str,
     payload: EntityUpdateRequest,
+    background_tasks: BackgroundTasks,
     use_case: UpdateEntityUseCase = Depends(get_update_entity_use_case),
 ) -> EntityResponse:
     """Partially update entity attributes."""
     try:
         dto = await use_case.execute(payload.to_command(entity_id))
+        background_tasks.add_task(
+            handle_entity_changed,
+            entity_id=dto.entity_id,
+            entity_type=dto.entity_type,
+            attributes=dto.attributes,
+            changed_attributes=list(payload.attributes.keys()),
+        )
         return EntityResponse.from_dto(dto)
     except EntityNotFoundError as exc:
         raise HTTPException(

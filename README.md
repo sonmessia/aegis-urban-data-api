@@ -90,13 +90,42 @@ app/
 
 ## API Endpoints
 
+### Entities (FIWARE NGSI-v2)
 | Method | Path | Description | Status Code |
 |---|---|---|---|
-| `POST` | `/v1/entities` | Ingest IoT sensor entity (NGSI-v2 payload) | `201 Created` / `409 Conflict` |
+| `POST` | `/v1/entities` | Ingest IoT sensor entity (triggers webhook notifications) | `201 Created` / `409 Conflict` |
 | `GET` | `/v1/entities` | List entities (paginated, optional type filter) | `200 OK` |
 | `GET` | `/v1/entities/{id}` | Retrieve entity by FIWARE Entity ID | `200 OK` / `404 Not Found` |
-| `PATCH` | `/v1/entities/{id}` | Update entity attributes (partial upsert) | `200 OK` / `404 Not Found` |
+| `PATCH` | `/v1/entities/{id}` | Update entity attributes (triggers webhook notifications) | `200 OK` / `404 Not Found` |
 | `DELETE` | `/v1/entities/{id}` | Delete entity by ID | `204 No Content` / `404 Not Found` |
+
+### Subscriptions & Notifications
+| Method | Path | Description | Status Code |
+|---|---|---|---|
+| `POST` | `/v1/subscriptions` | Register webhook subscription for entity changes | `201 Created` / `409 Conflict` |
+| `GET` | `/v1/subscriptions` | List subscriptions (filter by active/paused) | `200 OK` |
+| `GET` | `/v1/subscriptions/{id}` | Retrieve subscription details & notification count | `200 OK` / `404 Not Found` |
+| `DELETE` | `/v1/subscriptions/{id}`| Deregister subscription | `204 No Content` / `404 Not Found` |
+
+### Observations (Time-Series Telemetry)
+| Method | Path | Description | Status Code |
+|---|---|---|---|
+| `POST` | `/v1/observations` | Ingest single sensor metric | `201 Created` |
+| `POST` | `/v1/observations/bulk`| High-throughput batch telemetry ingestion | `201 Created` |
+| `GET` | `/v1/observations` | Query time-series window (`entity_id`, time range) | `200 OK` |
+| `GET` | `/v1/observations/latest` | Get latest reading for each attribute of an entity | `200 OK` |
+
+### IoT Simulation & Stream Generation
+| Method | Path | Description | Status Code |
+|---|---|---|---|
+| `POST` | `/v1/simulation/start` | Start background urban sensor stream simulation | `200 OK` |
+| `POST` | `/v1/simulation/stop` | Stop running simulation | `200 OK` |
+| `GET` | `/v1/simulation/status`| Get simulation telemetry rate & uptime | `200 OK` |
+| `POST` | `/v1/simulation/seed` | Seed default urban sensor fleet (HCM City) | `200 OK` |
+
+### Observability & Probes
+| Method | Path | Description | Status Code |
+|---|---|---|---|
 | `GET` | `/health`, `/v1/health` | Liveness probe (returns 200 if process alive) | `200 OK` |
 | `GET` | `/ready`, `/v1/ready` | Readiness probe (verifies database connectivity) | `200 OK` / `503 Unavailable` |
 | `GET` | `/metrics` | Prometheus metrics scrape endpoint | `200 OK` |
