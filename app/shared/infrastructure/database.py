@@ -9,6 +9,12 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from sqlalchemy.orm import DeclarativeBase
+
+
+class Base(DeclarativeBase):
+    """Base class for all ORM models."""
+    pass
 
 
 class DatabaseSessionManager:
@@ -74,12 +80,7 @@ sessionmanager = DatabaseSessionManager()
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     """
-    FastAPI dependency — inject an AsyncSession into route handlers.
-
-    Usage:
-        @router.get("/")
-        async def handler(db: AsyncSession = Depends(get_db_session)):
-            ...
+    FastAPI dependency — inject an AsyncSession into route handlers / dependencies.
     """
     async with sessionmanager.session() as session:
         yield session

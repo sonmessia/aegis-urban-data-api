@@ -8,10 +8,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from app.api.v1.router import api_router
-from app.core.config import get_settings
-from app.core.logging import configure_logging
-from app.db.session import sessionmanager
+from app.modules.entities.presentation.router import router as entities_router
+from app.modules.health.presentation.router import router as health_router
+from app.shared.infrastructure.database import sessionmanager
+from app.shared.infrastructure.settings import get_settings
+from app.shared.logging import configure_logging
 
 logger = structlog.get_logger(__name__)
 
@@ -47,7 +48,7 @@ def create_app() -> FastAPI:
         title="Urban Data API",
         description=(
             "IoT urban data ingestion service following FIWARE NGSI-v2 conventions. "
-            "Benchmark workload for the Aegis Platform."
+            "Modular Monolith + Clean Architecture. Benchmark workload for Aegis Platform."
         ),
         version=settings.app_version,
         docs_url="/docs" if settings.environment != "production" else None,
@@ -59,7 +60,7 @@ def create_app() -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,
-        allow_methods=["GET", "POST", "PUT", "DELETE"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
         allow_headers=["*"],
     )
 
@@ -67,10 +68,12 @@ def create_app() -> FastAPI:
     Instrumentator(
         should_group_status_codes=True,
         should_ignore_untemplated=True,
-        excluded_handlers=["/health", "/ready", "/metrics"],
+        excluded_handlers=["/health", "/ready", "/v1/health", "/v1/ready", "/metrics"],
     ).instrument(app).expose(app)
 
-    # API routes
-    app.include_router(api_router, prefix="/v1")
+    # Routes
+    app.include_router(health_router, prefix="/v1")
+    app.include_router(health_router)  # Also expose /health and /ready at root
+    app.include_router(entities_router, prefix="/v1")
 
     return app

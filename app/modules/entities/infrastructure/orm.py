@@ -1,30 +1,27 @@
-"""SQLAlchemy ORM model for IoT sensor entities (FIWARE NGSI-v2 inspired)."""
+"""SQLAlchemy ORM table mapping for IoT sensor entities."""
 
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, String, func
-from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import JSON, DateTime, String, Uuid, func
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.shared.infrastructure.database import Base
 
 
-class Base(DeclarativeBase):
-    """Base class for all ORM models."""
-    pass
-
-
-class Entity(Base):
+class EntityORM(Base):
     """
-    Represents a FIWARE NGSI-v2 entity (e.g., a sensor, vehicle, building).
+    Persistence model for FIWARE NGSI-v2 entities.
 
-    Schema aligns with NGSI-v2 simplified entity representation.
-    Attributes stored as JSONB for flexible IoT payloads.
+    Separated from Domain model to keep domain pure and free of ORM baggage.
+    Uses generic SQLAlchemy types with PostgreSQL JSONB variant for cross-DB compatibility.
     """
 
     __tablename__ = "entities"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        Uuid,
         primary_key=True,
         default=uuid.uuid4,
     )
@@ -42,7 +39,7 @@ class Entity(Base):
         comment="FIWARE entity type (e.g., 'AirQualityObserved')",
     )
     attributes: Mapped[dict] = mapped_column(
-        JSONB,
+        JSON().with_variant(JSONB, "postgresql"),
         nullable=False,
         default=dict,
         comment="NGSI-v2 attributes as JSON (value + metadata per attribute)",
@@ -60,4 +57,4 @@ class Entity(Base):
     )
 
     def __repr__(self) -> str:
-        return f"<Entity id={self.entity_id!r} type={self.entity_type!r}>"
+        return f"<EntityORM id={self.entity_id!r} type={self.entity_type!r}>"

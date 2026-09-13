@@ -1,13 +1,47 @@
-"""Tests for entity API endpoints."""
+"""Tests for entities module — domain unit tests and API integration tests."""
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.db.session import get_db_session, sessionmanager
 from app.main import create_app
-from app.models.entity import Base
+from app.modules.entities.domain.models import Entity
+from app.modules.entities.domain.value_objects import EntityId, EntityType
+from app.modules.entities.infrastructure.orm import EntityORM  # register with metadata
+from app.shared.infrastructure.database import Base, get_db_session
 
+
+# ─── Domain unit tests (Pure Python, Zero DB) ─────────────────────────────────
+
+def test_value_object_validations() -> None:
+    entity_id = EntityId("urn:ngsi-v2:AirQualityObserved:001")
+    assert str(entity_id) == "urn:ngsi-v2:AirQualityObserved:001"
+
+    entity_type = EntityType("AirQualityObserved")
+    assert str(entity_type) == "AirQualityObserved"
+
+    with pytest.raises(ValueError):
+        EntityId("")
+
+    with pytest.raises(ValueError):
+        EntityType("x" * 129)
+
+
+def test_domain_entity_update_attributes() -> None:
+    entity = Entity(
+        entity_id=EntityId("urn:ngsi-v2:Sensor:1"),
+        entity_type=EntityType("Sensor"),
+        attributes={"temp": {"value": 20}},
+    )
+    old_updated_at = entity.updated_at
+    entity.update_attributes({"humidity": {"value": 50}})
+
+    assert entity.attributes["temp"] == {"value": 20}
+    assert entity.attributes["humidity"] == {"value": 50}
+    assert entity.updated_at >= old_updated_at
+
+
+# ─── Integration tests with in-memory SQLite ──────────────────────────────────
 
 @pytest.fixture(scope="session")
 def anyio_backend() -> str:
@@ -16,7 +50,7 @@ def anyio_backend() -> str:
 
 @pytest.fixture(scope="session")
 async def test_engine():
-    """In-memory SQLite for fast tests (no Postgres needed in CI)."""
+    """In-memory SQLite for fast tests."""
     engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
