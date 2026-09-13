@@ -1,38 +1,13 @@
-# Docker build context exclusions for aegis/urban-data-api
-# Prevents unnecessary files from being sent to the Docker daemon,
-# keeping build context small and avoiding accidental secret leakage.
-
-# Rust build artefacts (often multi-GB — never needed in image)
-target/
-
-# Version control metadata
-.git/
-.gitignore
-.gitattributes
-
-# CI/CD configs (not needed at runtime)
-.github/
-
-# Documentation
-*.md
-docs/
-
-# Local environment files — NEVER copy secrets into image
+**/__pycache__
+**/*.py[cod]
+.venv/
 .env
 .env.*
-*.env
-
-# Editor / IDE artefacts
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# cargo-deny and audit config (tooling only)
-deny.toml
-audit.toml
-
-# OS artefacts
-.DS_Store
-Thumbs.db
+.git/
+.github/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+*.md
+tests/
